@@ -152,6 +152,41 @@ SELECT sokomart.fn_order_count(-1);
 -- the three status checks + the error message |
 
 
+CREATE OR REPLACE PROCEDURE sokomart.sp_set_customer_status(p_customer_id INTEGER,p_status VARCHAR)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF p_status IS NULL OR p_status NOT IN ('active', 'inactive', 'suspended') THEN
+        RAISE EXCEPTION 'Incorrect status: %', p_status;
+    END IF;
+
+    IF p_customer_id IS NULL OR p_customer_id NOT BETWEEN 1 AND 5000 THEN
+        RAISE EXCEPTION 'Customer : % does not exist', p_customer_id;
+    END IF;
+
+    UPDATE customers
+    SET customer_status = p_status
+    WHERE customer_id = p_customer_id;
+
+    IF NOT FOUND THEN
+        ROLLBACK;
+        RAISE EXCEPTION 'Customer does not exist: %', p_customer_id;
+    END IF;
+
+    COMMIT;
+    RAISE NOTICE 'Status set to % for customer % successfully', p_status, p_customer_id;
+END;
+$$;
+
+
+CALL sokomart.sp_set_customer_status(177, 'active');
+CALL sokomart.sp_set_customer_status(177, 'vip');
+/*
+SQL Error [P0001]: ERROR: Incorrect status: vip
+  Where: PL/pgSQL function sp_set_customer_status(integer,character varying) line 4 at RAISE
+*/
+
+
 
 -- *******************************************************************************************************************
 -- | D9 | Beauty products whose `stock_quantity` is below the **average Beauty stock**. Put the Beauty products in a CTE and compare with a scalar 

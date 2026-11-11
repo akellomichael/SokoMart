@@ -2,8 +2,8 @@
 -- 										Section A — CTEs and subqueries (20 marks)
 
 -- *****************************************************************************************************************************************************
+SET SEARCH_PATH TO sokomart;
 /* Question 1 — Big spenders of 2025 *(4 marks · Medium)*
-
 	**Scenario.** Marketing wants to invite 2025's above-average customers to a loyalty launch.
 	**Task.** In a CTE, compute each customer's **2025 revenue** (completed orders placed in 2025).
 	List the customers whose 2025 revenue is **above the average 2025 revenue of customers who
@@ -15,7 +15,7 @@
 	**Expected output.** `customer_id, full_name, county, total_spent_2025, avg_spent_2025, amount_above_avg`
 */
 
-WITH customer_revenue AS ( -- EACH customers' completed orders in 2025
+WITH customer_revenue AS (                                 -- EACH customers' completed orders in 2025
 	SELECT 
 		c.customer_id, 
 		c.first_name ||' ' || c.last_name AS full_name, 
@@ -29,7 +29,7 @@ WITH customer_revenue AS ( -- EACH customers' completed orders in 2025
 		AND o.order_status = 'completed'
 	GROUP BY c.customer_id, c.first_name ,c.last_name ,c.county
 ), 
-avg_revenue AS (		  -- general average of revenue on orders completed in 2025
+avg_revenue AS (		                                   -- general average of revenue on orders completed in 2025
 	SELECT AVG(total_spent_2025) AS avg_spent_2025
 	FROM customer_revenue
 )
@@ -42,7 +42,7 @@ SELECT
 	ROUND((cr.total_spent_2025 - ar.avg_spent_2025),2)  AS amount_above_avg
 FROM customer_revenue cr
 CROSS JOIN avg_revenue ar
-WHERE cr.total_spent_2025 > ar.avg_spent_2025  -- check - revenue > average revenue
+WHERE cr.total_spent_2025 > ar.avg_spent_2025              -- check - revenue > average revenue
 ORDER BY cr.total_spent_2025 DESC;
 
 
